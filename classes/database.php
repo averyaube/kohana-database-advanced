@@ -2,7 +2,8 @@
 
 abstract class Database extends Kohana_Database {
 
-    // Extra query type
-    const TRANSACTION = 0;
+    // Extra query types
+    const TRANSACTION  =  5;
+    const LOCK         =  6;
 
 } // End Database

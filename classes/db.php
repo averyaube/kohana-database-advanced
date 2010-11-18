@@ -3,17 +3,10 @@
 
 class DB extends Kohana_DB {
 
-    public static function transaction(/*polymorphic*/)
+    public static function transaction(Database_Transaction $db, array $statements)
     {
-        $statements = func_get_args();
-
         if(count($statements) == 0)
             return TRUE;
-
-        if ( ! $statements[0] instanceof Database_Transaction )
-            throw new Database_Transaction_Exception('No database implementing Database_Transaction found');
-
-        $db = array_shift($statements);
 
         $db->begin_transaction();
 
@@ -33,6 +26,31 @@ class DB extends Kohana_DB {
         $db->commit_transaction();
         return TRUE;
 
+    }
+
+    public static function lock(Database_Lock $db, array $tables, array $statements)
+    {
+        if(count($statements) == 0)
+            return TRUE;
+        
+        $db->lock($tables);
+
+        try
+        {
+            foreach($statements as $statement)
+            {
+                $statement->execute($db);
+            }
+        }
+        catch (Exception $e)
+        {
+            // Make sure the db unlocks before throwing an error
+            $db->unlock();
+            throw $e;
+        }
+
+        $db->unlock();
+        return TRUE;
     }
 
 } // End DB
